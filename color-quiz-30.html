@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>What's Your Color? | 30 Questions</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Literata:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --red: #E85555;
+    --yellow: #FFC043;
+    --green: #2BB5A0;
+    --blue: #5B9FE8;
+    --dark: #111318;
+    --card: #191c24;
+    --border: rgba(255,255,255,0.07);
+    --text: #e4e8f0;
+    --muted: #8e98b0;
+    --soft: #b8c0d4;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--dark);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content:'';
+    position:fixed; inset:0;
+    background:
+      radial-gradient(ellipse at 15% 15%, rgba(232,85,85,0.07) 0%, transparent 45%),
+      radial-gradient(ellipse at 85% 85%, rgba(91,159,232,0.07) 0%, transparent 45%),
+      radial-gradient(ellipse at 85% 15%, rgba(255,192,67,0.05) 0%, transparent 40%),
+      radial-gradient(ellipse at 15% 85%, rgba(43,181,160,0.05) 0%, transparent 40%);
+    pointer-events:none; z-index:0;
+  }
+
+  .container {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 40px 20px 80px;
+    position: relative; z-index: 1;
+  }
+
+  /* HEADER */
+  .header {
+    text-align: center;
+    margin-bottom: 40px;
+    animation: fadeDown 0.6s ease;
+  }
+  .header .eyebrow {
+    font-size: 11px; letter-spacing: 5px;
+    text-transform: uppercase; color: var(--muted);
+    margin-bottom: 14px;
+  }
+  .header h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(52px, 12vw, 84px);
+    line-height: 0.88; letter-spacing: 3px;
+    background: linear-gradient(135deg, #E85555 0%, #FFC043 33%, #2BB5A0 66%, #5B9FE8 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    margin-bottom: 14px;
+  }
+  .header p {
+    font-family: 'Literata', serif;
+    font-style: italic;
+    font-size: 16px; color: var(--soft);
+    line-height: 1.6; max-width: 400px; margin: 0 auto;
+  }
+
+  /* PROGRESS */
+  .progress-wrap { margin-bottom: 32px; }
+  .progress-info {
+    display: flex; justify-content: space-between;
+    font-size: 12px; color: var(--muted);
+    margin-bottom: 8px; letter-spacing: 1px; text-transform: uppercase;
+  }
+  .progress-bar-outer {
+    height: 4px; background: rgba(255,255,255,0.08);
+    border-radius: 2px; overflow: hidden;
+  }
+  .progress-bar-inner {
+    height: 100%; border-radius: 2px;
+    background: linear-gradient(90deg, var(--red), var(--yellow), var(--green), var(--blue));
+    background-size: 300% 100%;
+    transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+    animation: shimmer 3s linear infinite;
+  }
+  @keyframes shimmer {
+    0%  { background-position: 100% 50%; }
+    100%{ background-position: 0%   50%; }
+  }
+
+  /* QUESTION CARD */
+  .question-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px; padding: 32px 28px;
+    margin-bottom: 20px;
+    animation: slideIn 0.4s cubic-bezier(0.4,0,0.2,1);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  }
+  .question-number {
+    font-size: 11px; letter-spacing: 3px;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 14px;
+  }
+  .question-text {
+    font-size: 19px; font-weight: 600;
+    line-height: 1.45; margin-bottom: 28px; color: #fff;
+  }
+
+  /* OPTIONS */
+  .options { display: flex; flex-direction: column; gap: 11px; }
+  .option-btn {
+    background: rgba(255,255,255,0.04);
+    border: 1.5px solid rgba(255,255,255,0.09);
+    border-radius: 12px; padding: 15px 20px;
+    text-align: left; cursor: pointer;
+    transition: all 0.2s; color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-size: 14px;
+    line-height: 1.45; position: relative; overflow: hidden;
+  }
+  .option-btn::before {
+    content: ''; position: absolute;
+    left: 0; top: 0; bottom: 0; width: 3px;
+    border-radius: 2px 0 0 2px; opacity: 0; transition: opacity 0.2s;
+  }
+  .option-btn.red::before   { background: var(--red); }
+  .option-btn.yellow::before{ background: var(--yellow); }
+  .option-btn.green::before { background: var(--green); }
+  .option-btn.blue::before  { background: var(--blue); }
+
+  .option-btn:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); transform: translateX(4px); }
+  .option-btn:hover::before { opacity: 1; }
+  .option-btn.selected { transform: translateX(6px); }
+  .option-btn.selected.red    { background: rgba(232,85,85,0.14);  border-color: var(--red); }
+  .option-btn.selected.yellow { background: rgba(255,192,67,0.11); border-color: var(--yellow); }
+  .option-btn.selected.green  { background: rgba(43,181,160,0.11); border-color: var(--green); }
+  .option-btn.selected.blue   { background: rgba(91,159,232,0.12); border-color: var(--blue); }
+  .option-btn.selected::before { opacity: 1; }
+
+  .option-inner { display: flex; align-items: flex-start; gap: 4px; }
+  .option-letter {
+    display: inline-block; width: 24px; height: 24px;
+    border-radius: 6px; background: rgba(255,255,255,0.08);
+    font-size: 11px; font-weight: 600; text-align: center;
+    line-height: 24px; margin-right: 12px; flex-shrink: 0;
+  }
+
+  /* NAV */
+  .nav-row { display: flex; gap: 12px; justify-content: flex-end; margin-top: 8px; }
+  .btn-next {
+    background: white; color: var(--dark); border: none;
+    border-radius: 10px; padding: 14px 32px;
+    font-family: 'DM Sans', sans-serif; font-size: 15px;
+    font-weight: 600; cursor: pointer; transition: all 0.2s;
+    opacity: 0.3; pointer-events: none;
+  }
+  .btn-next.active { opacity: 1; pointer-events: all; }
+  .btn-next.active:hover { background: #e8eaf6; transform: translateY(-1px); box-shadow: 0 8px 20px rgba(255,255,255,0.15); }
+  .btn-back {
+    background: transparent; border: 1.5px solid rgba(255,255,255,0.15);
+    border-radius: 10px; padding: 14px 24px;
+    color: var(--soft); font-family: 'DM Sans', sans-serif;
+    font-size: 15px; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-back:hover { border-color: rgba(255,255,255,0.3); color: var(--text); }
+
+  /* INTRO */
+  .intro-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 20px; padding: 36px 28px; text-align: center;
+    animation: slideIn 0.45s ease;
+  }
+  .color-dots { display: flex; justify-content: center; gap: 16px; margin-bottom: 28px; }
+  .dot {
+    width: 52px; height: 52px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Bebas Neue', sans-serif; font-size: 20px;
+    color: rgba(0,0,0,0.65);
+  }
+  .intro-card h2 { font-family: 'Bebas Neue', sans-serif; font-size: 34px; letter-spacing: 2px; margin-bottom: 12px; color: #fff; }
+  .intro-card p { font-size: 14px; line-height: 1.7; color: var(--soft); margin-bottom: 28px; }
+  .start-btn {
+    background: white; color: var(--dark); border: none;
+    border-radius: 12px; padding: 16px 52px;
+    font-family: 'DM Sans', sans-serif; font-size: 16px;
+    font-weight: 700; cursor: pointer; transition: all 0.2s;
+  }
+  .start-btn:hover { background: #e8eaf6; transform: translateY(-2px); box-shadow: 0 10px 30px rgba(255,255,255,0.15); }
+
+  /* RESULTS */
+  .results { animation: fadeIn 0.6s ease; }
+  .results-header { text-align: center; margin-bottom: 36px; }
+  .results-header .eyebrow { font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+  .results-header h2 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(40px,10vw,64px); letter-spacing: 2px; }
+
+  .score-bars { display: flex; flex-direction: column; gap: 14px; margin-bottom: 32px; }
+  .score-row { display: flex; align-items: center; gap: 14px; }
+  .score-label { width: 68px; font-size: 13px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; flex-shrink: 0; }
+  .score-bar-outer { flex: 1; height: 28px; background: rgba(255,255,255,0.05); border-radius: 8px; overflow: hidden; }
+  .score-bar-fill { height: 100%; border-radius: 8px; transition: width 1s cubic-bezier(0.4,0,0.2,1); width: 0%; }
+  .score-pct { width: 36px; text-align: right; font-size: 14px; font-weight: 600; flex-shrink: 0; }
+
+  .blend-box {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 16px; padding: 24px; margin-bottom: 28px; text-align: center;
+  }
+  .blend-box h3 { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; margin-bottom: 10px; color: #fff; }
+  .blend-box p { font-size: 14px; line-height: 1.7; color: var(--soft); }
+
+  .profile-grid { display: flex; flex-direction: column; gap: 16px; margin-bottom: 28px; }
+  .profile-card {
+    border-radius: 16px; padding: 24px;
+    border: 1px solid rgba(255,255,255,0.07);
+    opacity: 0; transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .profile-card.visible { opacity: 1; transform: translateY(0); }
+  .profile-card.dominant { border-width: 2px; }
+  .profile-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .profile-color-name { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 2px; }
+  .profile-badge {
+    font-size: 10px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; padding: 4px 10px; border-radius: 20px;
+    background: rgba(255,255,255,0.1);
+  }
+  .profile-card p { font-size: 14px; line-height: 1.6; color: rgba(255,255,255,0.88); }
+  .profile-traits { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .trait-pill {
+    font-size: 11px; font-weight: 500; padding: 4px 10px;
+    border-radius: 20px; background: rgba(255,255,255,0.09);
+    color: rgba(255,255,255,0.8);
+  }
+
+  .action-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .action-btn {
+    background: transparent; border: 1.5px solid rgba(255,255,255,0.2);
+    border-radius: 12px; padding: 14px;
+    color: var(--soft); font-family: 'DM Sans', sans-serif;
+    font-size: 13px; cursor: pointer; transition: all 0.2s;
+    letter-spacing: 0.5px; text-transform: uppercase; font-weight: 500;
+  }
+  .action-btn:hover { border-color: rgba(255,255,255,0.35); color: var(--text); background: rgba(255,255,255,0.04); }
+
+  /* ANIMATIONS */
+  @keyframes fadeDown { from{opacity:0;transform:translateY(-20px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes fadeIn   { from{opacity:0} to{opacity:1} }
+  @keyframes slideIn  { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div class="eyebrow">Based on Thomas Erikson's Surrounded by Idiots</div>
+    <h1>What's Your<br>Color?</h1>
+    <p>30 situational questions to reveal your dominant personality profile</p>
+  </div>
+
+  <div id="app"></div>
+
+</div>
+<script>
+const questions = [
+  {
+    text: "A new project lands on your desk with a tight deadline. Your first instinct is to:",
+    options: [
+      { text: "Take charge immediately and start delegating tasks", color: "red" },
+      { text: "Call a team meeting to brainstorm and get everyone excited", color: "yellow" },
+      { text: "Make sure everyone is aligned and comfortable before diving in", color: "green" },
+      { text: "Map out every requirement and risk before writing a single word", color: "blue" }
+    ]
+  },
+  {
+    text: "When making a big decision, what matters most to you?",
+    options: [
+      { text: "Speed and results — overthinking kills momentum", color: "red" },
+      { text: "How it feels and whether people will be on board", color: "yellow" },
+      { text: "That no one gets hurt and relationships stay intact", color: "green" },
+      { text: "That you've gathered every relevant fact before committing", color: "blue" }
+    ]
+  },
+  {
+    text: "How do your closest friends or colleagues most often describe you?",
+    options: [
+      { text: "Direct, driven, and gets things done", color: "red" },
+      { text: "Enthusiastic, fun, and full of ideas", color: "yellow" },
+      { text: "Calm, dependable, and a great listener", color: "green" },
+      { text: "Thorough, precise, and thoughtful", color: "blue" }
+    ]
+  },
+  {
+    text: "When you're stressed, you tend to:",
+    options: [
+      { text: "Go into overdrive and start controlling more things", color: "red" },
+      { text: "Vent to someone or find a fun distraction", color: "yellow" },
+      { text: "Withdraw quietly and avoid making waves", color: "green" },
+      { text: "Overthink and spiral into worst-case scenarios", color: "blue" }
+    ]
+  },
+  {
+    text: "You're at a party where you barely know anyone. You:",
+    options: [
+      { text: "Work the room strategically — you're here with a purpose", color: "red" },
+      { text: "Light up and immediately start making new friends", color: "yellow" },
+      { text: "Find one or two people you click with and go deep", color: "green" },
+      { text: "Hang back and observe before engaging with anyone", color: "blue" }
+    ]
+  },
+  {
+    text: "A coworker makes a mistake that affects your work. You:",
+    options: [
+      { text: "Address it directly with them, immediately", color: "red" },
+      { text: "Make a joke to lighten the mood, then bring it up casually", color: "yellow" },
+      { text: "Let it go this time to keep the peace, but feel frustrated", color: "green" },
+      { text: "Document what happened before saying anything", color: "blue" }
+    ]
+  },
+  {
+    text: "Your ideal work environment looks like:",
+    options: [
+      { text: "Fast-paced, competitive, where your results are visible", color: "red" },
+      { text: "Social, collaborative, and full of creative energy", color: "yellow" },
+      { text: "Stable, supportive, and low on drama", color: "green" },
+      { text: "Structured, quiet, with clear expectations and standards", color: "blue" }
+    ]
+  },
+  {
+    text: "Which of these sounds most like you?",
+    options: [
+      { text: "\"I'd rather ask forgiveness than permission.\"", color: "red" },
+      { text: "\"Life's too short to be boring.\"", color: "yellow" },
+      { text: "\"If it ain't broke, don't fix it.\"", color: "green" },
+      { text: "\"Measure twice, cut once.\"", color: "blue" }
+    ]
+  },
+  {
+    text: "How do you prefer to receive feedback?",
+    options: [
+      { text: "Straight to the point — just tell me what to fix", color: "red" },
+      { text: "With some encouragement mixed in so I stay motivated", color: "yellow" },
+      { text: "Gently, privately, and with care for my feelings", color: "green" },
+      { text: "In writing with specific examples I can review", color: "blue" }
+    ]
+  },
+  {
+    text: "What's your biggest frustration at work?",
+    options: [
+      { text: "Slow decision-making and endless rounds of buy-in", color: "red" },
+      { text: "Rigid rules and people who shoot down creative ideas", color: "yellow" },
+      { text: "Constant change and a lack of team harmony", color: "green" },
+      { text: "Careless errors and people who skip the details", color: "blue" }
+    ]
+  },
+  {
+    text: "When starting something new, you:",
+    options: [
+      { text: "Jump in and figure it out as you go", color: "red" },
+      { text: "Get excited and talk to everyone about it first", color: "yellow" },
+      { text: "Ease in slowly after seeing how others approach it", color: "green" },
+      { text: "Research thoroughly before taking a single step", color: "blue" }
+    ]
+  },
+  {
+    text: "In a conflict, you're most likely to:",
+    options: [
+      { text: "Confront it head-on and resolve it immediately", color: "red" },
+      { text: "Use humor and charm to defuse the tension", color: "yellow" },
+      { text: "Avoid it and hope it naturally resolves itself", color: "green" },
+      { text: "Analyze what went wrong before addressing anyone", color: "blue" }
+    ]
+  },
+  {
+    text: "How do you handle rules you disagree with?",
+    options: [
+      { text: "Break them if they slow me down, or push to change them fast", color: "red" },
+      { text: "Bend them creatively and charm my way through", color: "yellow" },
+      { text: "Follow them — I don't want to rock the boat", color: "green" },
+      { text: "Study them closely to find a compliant workaround", color: "blue" }
+    ]
+  },
+  {
+    text: "At the end of a long day, you recharge by:",
+    options: [
+      { text: "Reflecting on what you achieved and planning tomorrow", color: "red" },
+      { text: "Calling a friend or heading somewhere social", color: "yellow" },
+      { text: "Unwinding quietly with people you're comfortable with", color: "green" },
+      { text: "Reading, organizing, or diving into something focused", color: "blue" }
+    ]
+  },
+  {
+    text: "Your communication style is best described as:",
+    options: [
+      { text: "Blunt, efficient, and results-focused", color: "red" },
+      { text: "Expressive, persuasive, and story-driven", color: "yellow" },
+      { text: "Warm, patient, and careful not to offend", color: "green" },
+      { text: "Precise, evidence-based, and well-structured", color: "blue" }
+    ]
+  },
+  {
+    text: "Your first reaction when a plan goes sideways is:",
+    options: [
+      { text: "Pivot fast and attack the new situation head-on", color: "red" },
+      { text: "Rally the team and reframe it as an adventure", color: "yellow" },
+      { text: "Make sure everyone is okay before figuring out next steps", color: "green" },
+      { text: "Understand exactly what broke before changing anything", color: "blue" }
+    ]
+  },
+  {
+    text: "When you're in a meeting that's going off the rails, you:",
+    options: [
+      { text: "Step in and redirect it — someone has to", color: "red" },
+      { text: "Try to re-energize the room with a new angle or a joke", color: "yellow" },
+      { text: "Stay quiet and hope it finds its way back on track", color: "green" },
+      { text: "Mentally note what went wrong so you can flag it later", color: "blue" }
+    ]
+  },
+  {
+    text: "In a group project, your natural role tends to be:",
+    options: [
+      { text: "The one driving the timeline and holding people accountable", color: "red" },
+      { text: "The one generating ideas and keeping spirits high", color: "yellow" },
+      { text: "The one making sure everyone feels heard and the team stays together", color: "green" },
+      { text: "The one checking accuracy, catching gaps, and improving quality", color: "blue" }
+    ]
+  },
+  {
+    text: "When you get a compliment for your work, you:",
+    options: [
+      { text: "Appreciate it, but you already knew it was good", color: "red" },
+      { text: "Light up — recognition genuinely means a lot to you", color: "yellow" },
+      { text: "Feel quietly proud but slightly uncomfortable with the spotlight", color: "green" },
+      { text: "Wonder if they noticed the flaw you fixed at the last minute", color: "blue" }
+    ]
+  },
+  {
+    text: "Which of these would drain you the most?",
+    options: [
+      { text: "Being micromanaged or stuck in a role with no authority", color: "red" },
+      { text: "Working alone in silence with no human interaction all day", color: "yellow" },
+      { text: "Being in constant conflict or a politically charged environment", color: "green" },
+      { text: "Being forced to decide with incomplete or unreliable information", color: "blue" }
+    ]
+  },
+  {
+    text: "When you think about your worst habit, it's probably:",
+    options: [
+      { text: "Steamrolling people when you're in pursuit of a goal", color: "red" },
+      { text: "Starting things with huge energy and not always finishing them", color: "yellow" },
+      { text: "Holding onto frustrations instead of voicing them", color: "green" },
+      { text: "Getting so deep in the weeds that you lose the big picture", color: "blue" }
+    ]
+  },
+  {
+    text: "Someone asks for your honest opinion on their work. You give them:",
+    options: [
+      { text: "The unfiltered truth — sugarcoating wastes everyone's time", color: "red" },
+      { text: "Lots of encouragement with the hard part tucked in the middle", color: "yellow" },
+      { text: "Gentle, careful feedback that preserves their confidence", color: "green" },
+      { text: "A detailed, structured critique with specific suggestions", color: "blue" }
+    ]
+  },
+  {
+    text: "If your team misses a goal, you're most likely to say:",
+    options: [
+      { text: "\"Here's what we're doing differently starting now.\"", color: "red" },
+      { text: "\"We gave it everything — let's regroup and come back stronger.\"", color: "yellow" },
+      { text: "\"Is everyone okay? Let's take a breath before we figure out next steps.\"", color: "green" },
+      { text: "\"We need to understand exactly where the process broke down first.\"", color: "blue" }
+    ]
+  },
+  {
+    text: "Your idea of an excellent leader is someone who:",
+    options: [
+      { text: "Makes bold calls, takes responsibility, and drives the team to win", color: "red" },
+      { text: "Inspires people, creates energy, and makes the journey exciting", color: "yellow" },
+      { text: "Puts people first, earns trust, and keeps the team stable", color: "green" },
+      { text: "Sets high standards, plans carefully, and ensures nothing falls through the cracks", color: "blue" }
+    ]
+  },
+  {
+    text: "Which of these is closest to your personal motto?",
+    options: [
+      { text: "\"Done is better than perfect.\"", color: "red" },
+      { text: "\"You only live once — make it memorable.\"", color: "yellow" },
+      { text: "\"Slow and steady wins the race.\"", color: "green" },
+      { text: "\"The details are where the difference is made.\"", color: "blue" }
+    ]
+  },
+  {
+    text: "You're most uncomfortable when:",
+    options: [
+      { text: "You're not in control of an outcome that matters to you", color: "red" },
+      { text: "People around you are cold, disengaged, or unresponsive", color: "yellow" },
+      { text: "There's unresolved tension or conflict in your close circle", color: "green" },
+      { text: "You're asked to sign off on something you haven't fully vetted", color: "blue" }
+    ]
+  },
+  {
+    text: "How do you feel about asking for help?",
+    options: [
+      { text: "You'd rather push through — asking feels like admitting weakness", color: "red" },
+      { text: "Easy — you'll ask anyone, you're not proud about it", color: "yellow" },
+      { text: "You'll ask people you trust deeply, but not easily from strangers", color: "green" },
+      { text: "You exhaust every resource yourself first, then ask very specifically", color: "blue" }
+    ]
+  },
+  {
+    text: "A friend asks what you're like in a crisis. You'd say:",
+    options: [
+      { text: "\"I take over, make decisions fast, and deal with feelings later.\"", color: "red" },
+      { text: "\"I keep the energy up and try to stop everyone from panicking.\"", color: "yellow" },
+      { text: "\"I focus on keeping people calm and making sure no one's left behind.\"", color: "green" },
+      { text: "\"I slow down, diagnose the problem, and find the most reliable path forward.\"", color: "blue" }
+    ]
+  },
+  {
+    text: "How do you typically respond to change in an organization?",
+    options: [
+      { text: "You push for it — the status quo is usually an obstacle", color: "red" },
+      { text: "You embrace it — change brings new energy and possibility", color: "yellow" },
+      { text: "You adapt, but need time and prefer smooth transitions", color: "green" },
+      { text: "You evaluate it carefully — change for change's sake is dangerous", color: "blue" }
+    ]
+  },
+  {
+    text: "If your team described you in one word, they'd most likely say:",
+    options: [
+      { text: "\"Driven.\"", color: "red" },
+      { text: "\"Magnetic.\"", color: "yellow" },
+      { text: "\"Steady.\"", color: "green" },
+      { text: "\"Meticulous.\"", color: "blue" }
+    ]
+  }
+];
+
+const colorData = {
+  red: {
+    name: "RED", disc: "Dominant",
+    hex: "#E85555", bg: "rgba(232,85,85,0.1)", border: "rgba(232,85,85,0.4)",
+    description: "You're a natural leader who drives results through sheer will. Decisive and confident, you move fast and don't wait for permission. You thrive under pressure and have little patience for inefficiency or indecision.",
+    traits: ["Decisive","Goal-driven","Bold","Direct","Competitive","Action-oriented"],
+    watchOut: "You can run over people without realizing it. Slowing down to bring others along often gets you further, faster."
+  },
+  yellow: {
+    name: "YELLOW", disc: "Inspiring",
+    hex: "#FFC043", bg: "rgba(255,192,67,0.08)", border: "rgba(255,192,67,0.35)",
+    description: "You light up every room you walk into. Optimistic, enthusiastic, and magnetic, you communicate through stories and emotion. You're a connector who makes people feel seen and energized.",
+    traits: ["Charismatic","Optimistic","Creative","Social","Persuasive","Expressive"],
+    watchOut: "Your energy can outpace your follow-through. Details and deadlines need more of your attention than you naturally give them."
+  },
+  green: {
+    name: "GREEN", disc: "Stable",
+    hex: "#2BB5A0", bg: "rgba(43,181,160,0.08)", border: "rgba(43,181,160,0.35)",
+    description: "You are the steady heartbeat of every team. Reliable, empathetic, and deeply loyal, you create environments where people feel safe and valued. You prize harmony and long-term trust over quick wins.",
+    traits: ["Loyal","Calm","Empathetic","Patient","Dependable","Collaborative"],
+    watchOut: "Avoiding conflict too long lets small problems become big ones. Your voice and perspective deserve to be heard."
+  },
+  blue: {
+    name: "BLUE", disc: "Analytic",
+    hex: "#5B9FE8", bg: "rgba(91,159,232,0.08)", border: "rgba(91,159,232,0.35)",
+    description: "You are the quality control of any operation. Methodical and precise, you catch what everyone else misses. You believe in doing things right the first time and back every claim with evidence.",
+    traits: ["Analytical","Precise","Thorough","Logical","Systematic","Detail-oriented"],
+    watchOut: "Perfectionism can create bottlenecks. Sometimes a good answer now beats a perfect answer too late."
+  }
+};
+
+const blendDescriptions = {
+  "red-yellow": "A high-energy driver who can sell the vision AND execute it. You lead with confidence and bring people along for the ride — urgency meets magnetism.",
+  "red-blue":   "A methodical powerhouse. You want results AND you want them to be right. Bold decisions that actually hold up under scrutiny.",
+  "red-green":  "An uncommon but powerful mix — driven to achieve but with genuine care for people. You push hard without burning bridges.",
+  "yellow-green":"A warm communicator who builds deep trust. You inspire people and make them feel valued — a rare and powerful combination.",
+  "yellow-blue": "A creative analyst. Bold ideas pressure-tested by rigorous thinking. Fun to be around and surprisingly precise.",
+  "green-blue":  "A calm, careful thinker. Deliberate, high-quality work and high-quality relationships go hand in hand for you.",
+  "red":    "A pure driver. Every ounce of energy toward results. Harness that force — it's rare and formidable.",
+  "yellow": "Pure energy. The room shifts when you enter it. Channel the enthusiasm into follow-through.",
+  "green":  "Pure stability. Everyone wants you on their team. Advocate for yourself as fiercely as you advocate for others.",
+  "blue":   "Pure precision. The standard-bearer of any operation. Trust your instincts more — they're usually right."
+};
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+let state = { phase: 'intro', current: 0, answers: [], scores: { red:0, yellow:0, green:0, blue:0 } };
+let shuffledQ = [];
+
+function render() {
+  const app = document.getElementById('app');
+  if (state.phase === 'intro')   renderIntro(app);
+  else if (state.phase === 'quiz') renderQuestion(app);
+  else if (state.phase === 'results') renderResults(app);
+}
+
+function renderIntro(app) {
+  app.innerHTML = `
+    <div class="intro-card">
+      <div class="color-dots">
+        <div class="dot" style="background:#E85555">R</div>
+        <div class="dot" style="background:#FFC043">Y</div>
+        <div class="dot" style="background:#2BB5A0">G</div>
+        <div class="dot" style="background:#5B9FE8">B</div>
+      </div>
+      <h2>DISCOVER YOUR PROFILE</h2>
+      <p>30 questions. No right answers. Pick the option that feels most like you — not who you wish you were.</p>
+      <button class="start-btn" onclick="startQuiz()">Let's Go →</button>
+    </div>`;
+}
+
+function startQuiz() {
+  shuffledQ = questions.map(q => ({ text: q.text, options: shuffle(q.options) }));
+  state = { phase: 'quiz', current: 0, answers: new Array(questions.length).fill(null), scores: { red:0, yellow:0, green:0, blue:0 } };
+  render();
+}
+
+function renderQuestion(app) {
+  const q = shuffledQ[state.current];
+  const letters = ['A','B','C','D'];
+  const pct = Math.round((state.current / questions.length) * 100);
+  const sel = state.answers[state.current];
+
+  app.innerHTML = `
+    <div class="progress-wrap">
+      <div class="progress-info">
+        <span>Question ${state.current + 1} of ${questions.length}</span>
+        <span>${pct}%</span>
+      </div>
+      <div class="progress-bar-outer">
+        <div class="progress-bar-inner" style="width:${pct}%"></div>
+      </div>
+    </div>
+    <div class="question-card">
+      <div class="question-number">Question ${state.current + 1}</div>
+      <div class="question-text">${q.text}</div>
+      <div class="options">
+        ${q.options.map((o, i) => `
+          <button class="option-btn ${o.color} ${sel === o.color ? 'selected' : ''}"
+            onclick="selectOption('${o.color}')">
+            <div class="option-inner">
+              <span class="option-letter">${letters[i]}</span>
+              <span>${o.text}</span>
+            </div>
+          </button>`).join('')}
+      </div>
+    </div>
+    <div class="nav-row">
+      ${state.current > 0 ? `<button class="btn-back" onclick="goBack()">← Back</button>` : ''}
+      <button class="btn-next ${sel ? 'active' : ''}" onclick="nextQuestion()">
+        ${state.current === questions.length - 1 ? 'See My Results →' : 'Next →'}
+      </button>
+    </div>`;
+}
+
+function selectOption(color) {
+  state.answers[state.current] = color;
+  render();
+}
+
+function nextQuestion() {
+  if (!state.answers[state.current]) return;
+  if (state.current < questions.length - 1) {
+    state.current++;
+    render();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } else {
+    calculateResults();
+  }
+}
+
+function goBack() {
+  if (state.current > 0) {
+    state.current--;
+    render();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+function calculateResults() {
+  const s = { red:0, yellow:0, green:0, blue:0 };
+  state.answers.forEach(a => { if (a) s[a]++; });
+  state.scores = s;
+  state.phase = 'results';
+  render();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  setTimeout(() => {
+    const total = questions.length;
+    ['red','yellow','green','blue'].forEach(c => {
+      const pct = Math.round((s[c] / total) * 100);
+      const bar = document.getElementById('bar-' + c);
+      const lbl = document.getElementById('pct-' + c);
+      if (bar) bar.style.width = pct + '%';
+      if (lbl) lbl.textContent = pct + '%';
+    });
+  }, 100);
+
+  setTimeout(() => {
+    document.querySelectorAll('.profile-card').forEach((el, i) => {
+      setTimeout(() => el.classList.add('visible'), i * 130);
+    });
+  }, 400);
+}
+
+function renderResults(app) {
+  const s = state.scores;
+  const total = questions.length;
+  const sorted = Object.entries(s).sort((a, b) => b[1] - a[1]);
+  const top = sorted[0][0];
+  const second = sorted[1][0];
+  const topPct = Math.round((sorted[0][1] / total) * 100);
+
+  let blendKey;
+  if (topPct >= 45) {
+    blendKey = top;
+  } else {
+    const pair = [top, second].sort().join('-');
+    blendKey = blendDescriptions[pair] ? pair : top;
+  }
+
+  const colorOrder = sorted.map(x => x[0]);
+
+  app.innerHTML = `
+    <div class="results">
+      <div class="results-header">
+        <div class="eyebrow">Your Results</div>
+        <h2 style="color:${colorData[top].hex}">
+          ${topPct >= 45 ? 'DOMINANT ' + top.toUpperCase() : top.toUpperCase() + ' / ' + second.toUpperCase()}
+        </h2>
+      </div>
+
+      <div class="score-bars">
+        ${colorOrder.map(c => `
+          <div class="score-row">
+            <div class="score-label" style="color:${colorData[c].hex}">${colorData[c].name}</div>
+            <div class="score-bar-outer">
+              <div class="score-bar-fill" id="bar-${c}" style="background:${colorData[c].hex}"></div>
+            </div>
+            <div class="score-pct" id="pct-${c}" style="color:${colorData[c].hex}">0%</div>
+          </div>`).join('')}
+      </div>
+
+      <div class="blend-box">
+        <h3>YOUR BLEND</h3>
+        <p>${blendDescriptions[blendKey] || blendDescriptions[top]}</p>
+      </div>
+
+      <div class="profile-grid">
+        ${colorOrder.filter(c => s[c] > 0).map((c, i) => {
+          const d = colorData[c];
+          const isPrimary = i === 0;
+          return `
+            <div class="profile-card ${isPrimary ? 'dominant' : ''}"
+              style="background:${d.bg}; border-color:${d.border}">
+              <div class="profile-card-top">
+                <div class="profile-color-name" style="color:${d.hex}">${d.name}</div>
+                <div class="profile-badge" style="color:${d.hex}">
+                  ${isPrimary ? '★ PRIMARY' : i === 1 ? 'SECONDARY' : 'PRESENT'}
+                </div>
+              </div>
+              <p style="margin-bottom:10px">${d.description}</p>
+              ${isPrimary ? `<p style="font-size:13px;color:rgba(255,255,255,0.65);margin-bottom:10px">⚠ Watch out: ${d.watchOut}</p>` : ''}
+              <div class="profile-traits">
+                ${d.traits.map(t => `<span class="trait-pill">${t}</span>`).join('')}
+              </div>
+            </div>`;
+        }).join('')}
+      </div>
+
+      <div class="action-row">
+        <button class="action-btn" onclick="retake()">↺ Retake the Quiz</button>
+        <button class="action-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑ Back to Top</button>
+      </div>
+    </div>`;
+}
+
+function retake() {
+  state = { phase: 'intro', current: 0, answers: [], scores: { red:0, yellow:0, green:0, blue:0 } };
+  render();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+render();
+</script>
+</body>
+</html>
