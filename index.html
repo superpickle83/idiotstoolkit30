@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Color Code Workshop | Deerkill Day Camp</title>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Literata:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap');
 
@@ -547,6 +548,50 @@
   .intro-card p{font-size:14px;line-height:1.7;color:var(--soft);margin-bottom:28px}
   .start-btn{background:white;color:var(--dark);border:none;border-radius:12px;padding:16px 48px;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;cursor:pointer;transition:all 0.2s}
   .start-btn:hover{background:#e8eaf6;transform:translateY(-2px);box-shadow:0 10px 30px rgba(255,255,255,0.15)}
+
+  /* EMAIL FORM */
+  .email-section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+  .email-section h3 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px; letter-spacing: 2px;
+    color: #fff; margin-bottom: 6px;
+  }
+  .email-section p {
+    font-size: 13px; color: var(--soft);
+    line-height: 1.6; margin-bottom: 16px;
+  }
+  .email-fields { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+  .email-input {
+    background: rgba(255,255,255,0.05);
+    border: 1.5px solid rgba(255,255,255,0.12);
+    border-radius: 10px; padding: 13px 16px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-size: 14px;
+    width: 100%; transition: border-color 0.2s;
+  }
+  .email-input:focus { outline: none; border-color: rgba(255,255,255,0.35); }
+  .email-input::placeholder { color: var(--muted); }
+  .send-btn {
+    width: 100%; background: white; color: var(--dark);
+    border: none; border-radius: 10px; padding: 14px;
+    font-family: 'DM Sans', sans-serif; font-size: 15px;
+    font-weight: 700; cursor: pointer; transition: all 0.2s;
+  }
+  .send-btn:hover { background: #e8eaf6; transform: translateY(-1px); }
+  .send-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .email-status {
+    font-size: 13px; text-align: center;
+    margin-top: 10px; line-height: 1.5;
+    min-height: 20px;
+  }
+  .email-status.success { color: #2BB5A0; }
+  .email-status.error   { color: #E85555; }
 
   @keyframes fadeDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
   @keyframes fadeIn{from{opacity:0}to{opacity:1}}
@@ -1135,6 +1180,7 @@
 
 <script>
 // ==================== NAV ====================
+emailjs.init('7tf5bGwyjf7IbRAMt');
 function showPage(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
@@ -1479,11 +1525,101 @@ function renderQResults(app) {
           </div>`;
         }).join('')}
       </div>
+
+      <div class="email-section">
+        <h3>EMAIL MY RESULTS</h3>
+        <p>Get a copy of your full color profile — including your scores, what your blend means, and tips for working with each of the other colors.</p>
+        <div class="email-fields">
+          <input class="email-input" type="text" id="email-name" placeholder="Your first name" />
+          <input class="email-input" type="email" id="email-addr" placeholder="Your email address" />
+        </div>
+        <button class="send-btn" id="send-btn" onclick="sendResults()">Send My Results →</button>
+        <div class="email-status" id="email-status"></div>
+      </div>
+
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
         <button class="retake-btn" onclick="startQuiz()">↺ Retake</button>
         <button class="retake-btn" style="border-color:rgba(255,255,255,0.25);color:var(--text)" onclick="showPage('guide')">Explore Your Color →</button>
       </div>
     </div>`;
+
+  // store results for email use
+  window._quizResultsForEmail = { s, t, sorted, top, second, topPct, blendKey, colorOrder };
+}
+
+function sendResults() {
+  const name = document.getElementById('email-name').value.trim();
+  const email = document.getElementById('email-addr').value.trim();
+  const statusEl = document.getElementById('email-status');
+  const btn = document.getElementById('send-btn');
+
+  if (!name) { statusEl.textContent = 'Please enter your first name.'; statusEl.className = 'email-status error'; return; }
+  if (!email || !email.includes('@')) { statusEl.textContent = 'Please enter a valid email address.'; statusEl.className = 'email-status error'; return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+  statusEl.textContent = '';
+  statusEl.className = 'email-status';
+
+  const { s, t, sorted, top, second, topPct, blendKey, colorOrder } = window._quizResultsForEmail;
+
+  // Build score summary
+  const scoreLines = colorOrder.map(c => {
+    const pct = Math.round((s[c]/t)*100);
+    const bar = '█'.repeat(Math.round(pct/5)) + '░'.repeat(20 - Math.round(pct/5));
+    return `${colorData[c].name.padEnd(7)} ${bar} ${pct}%`;
+  }).join('\n');
+
+  // Build profile blocks
+  const profileLines = colorOrder.filter(c => s[c] > 0).map((c, i) => {
+    const d = colorData[c];
+    const rank = i === 0 ? '★ PRIMARY COLOR' : i === 1 ? 'SECONDARY COLOR' : 'ALSO PRESENT';
+    const watchLine = i === 0 ? `\nWatch out: ${d.watchOut}` : '';
+    return `${rank}: ${d.name} (${d.disc})\n${d.description}${watchLine}\nKey traits: ${d.traits.join(', ')}`;
+  }).join('\n\n---\n\n');
+
+  // Build working-with-others tips for all colors they're NOT primarily
+  const otherColors = ['red','yellow','green','blue'].filter(c => c !== top);
+  const workingTips = {
+    red:    ['Lead every conversation with the bottom line — skip the preamble','Be direct and confident; hedging reads as uncertainty','Give them ownership over decisions rather than prescribing how','Keep updates short: outcome, obstacle, need','Challenge them respectfully when you disagree — they respect that more than compliance'],
+    yellow: ['Open with warmth and genuine connection before getting to business','Use stories and examples — abstract logic falls flat','Give real recognition before delivering critical feedback','Follow up important commitments in writing; they may not retain details','Frame changes as exciting opportunities, not problems'],
+    green:  ['Give advance notice of any change — surprises create anxiety','Ask their opinion directly and privately; they won\'t volunteer it in a group','Be patient — their silence is processing, not disinterest','Acknowledge their contributions explicitly; they work hard quietly','Never push for an immediate answer on something important'],
+    blue:   ['Come prepared with data, facts, and well-structured reasoning','Give them time to think before expecting an answer','Respect their process — don\'t cut corners or skip steps they\'ve set','Be precise with language; avoid exaggeration or vague claims','Don\'t take their problem-spotting personally — they believe they\'re being helpful']
+  };
+
+  const otherTipsText = otherColors.map(c => {
+    const d = colorData[c];
+    const tips = workingTips[c].map((t,i) => `  ${i+1}. ${t}`).join('\n');
+    return `WORKING WITH A ${d.name} (${d.disc}):\n${tips}`;
+  }).join('\n\n');
+
+  const headline = topPct >= 45 ? `DOMINANT ${top.toUpperCase()}` : `${top.toUpperCase()} / ${second.toUpperCase()}`;
+  const blend = blendDescriptions[blendKey] || blendDescriptions[top];
+
+  const templateParams = {
+    to_name:      name,
+    to_email:     email,
+    headline:     headline,
+    blend:        blend,
+    score_summary: scoreLines,
+    profile_detail: profileLines,
+    working_tips:  otherTipsText
+  };
+
+  emailjs.send('service_jqbj7so', 'template_59nonpr', templateParams, '7tf5bGwyjf7IbRAMt')
+    .then(() => {
+      btn.textContent = '✓ Sent!';
+      statusEl.textContent = `Results sent to ${email} — check your inbox.`;
+      statusEl.className = 'email-status success';
+    })
+    .catch(err => {
+      console.error('EmailJS error:', err);
+      btn.disabled = false;
+      btn.textContent = 'Send My Results →';
+      statusEl.textContent = 'Something went wrong. Please try again.';
+      statusEl.className = 'email-status error';
+    });
+}
 }
 </script>
 </body>
